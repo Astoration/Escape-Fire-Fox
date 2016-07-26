@@ -2,11 +2,17 @@
 using System.Collections;
 
 public class Projectile : MonoBehaviour {
-    private float Speed = 7f;
+    public float Speed = 7f;
+    public int defaultDamage;
+    public int damageRatio;
     private int direction = -1;
     private int stage;
-	// Use this for initialization
-	void Start () {
+    // Use this for initialization
+    void OnBecameInvisible()
+    {
+        Destroy(this.gameObject);
+    }
+    void Start () {
         stage = PlayerPrefs.GetInt("currentStage", 1);
 	}
 	public void SetDirection(int i)
@@ -19,12 +25,12 @@ public class Projectile : MonoBehaviour {
         transform.Translate(Speed * Time.deltaTime * new Vector2(direction,0));
 	}
 
-    void OnTriggerEnter2D(Collider2D other)
+    void OnCollisionEnter2D(Collision2D other)
     {
         if (other.gameObject.tag.Equals("Player"))
         {
-            StatusManager.instance.DealHP(5+stage);
-            Destroy(this.gameObject);
+            Debug.Log("ㅅ;빌");
+            StatusManager.instance.DealHP(defaultDamage+stage*damageRatio);
         }
     }
 }

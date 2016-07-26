@@ -2,7 +2,8 @@
 using System.Collections;
 using UnityEngine.UI;
 
-public class Joystic : MonoBehaviour {
+public class Joystic : MonoBehaviour
+{
     public Image JoysticImage;
     public GameObject Character;
     public bool moveEnable = true;
@@ -11,25 +12,31 @@ public class Joystic : MonoBehaviour {
     private float fireballChargingDelay = 0.15f;
     private float fireballChargingTimer = 0f;
     private int teleportSkillLevel;
+    private float moveSpeed;
     public GameObject fireBall;
     public GameObject magicMissile;
     public GameObject teleportPrefabs;
     public int Frequency = 1;
     private float missileDelay;
     private float missileTimer = 0f;
+
     public Camera camera;
+
 
     //private Vector3 
     // Use this for initialization
-    void Start () {
-        Frequency = PlayerPrefs.GetInt("defaultFrequency", 1);
+    void Start()
+    {
+        Frequency = saveManager.GetInt("defaultFrequency", 1);
         missileDelay = 1f / (float)Frequency;
-        teleportSkillLevel = PlayerPrefs.GetInt("teleportSkillLevel", 1);
+        teleportSkillLevel = saveManager.GetInt("skillTeleport", 1);
+        moveSpeed = saveManager.GetInt("statusSpeedMount", 100) * 0.01f;
         CharacterMoving = Character.GetComponent<Animator>();
-	}
-	
-	// Update is called once per frame
-	void Update () {
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
         missileTimer += Time.deltaTime;
         CharacterMoving.SetFloat("velocity", Vector2.Distance(Vector2.zero, distance));
         if (distance.x > 0)
@@ -44,47 +51,29 @@ public class Joystic : MonoBehaviour {
             scale.x = Mathf.Abs(scale.x);
             Character.transform.localScale = scale;
         }
-        if (moveEnable && (Input.touchCount>0 || Input.GetMouseButton(0)))
+
+        if (moveEnable && (Input.touchCount > 0 || Input.GetMouseButton(0)))
         {
-            if (missileDelay < missileTimer)
+            Character.transform.Translate((distance * 0.03f * moveSpeed) * Time.deltaTime);
+
+            if (missileDelay < missileTimer&&Vector2.Distance(Vector2.zero,distance)!=0)
             {
                 missileTimer = 0;
-                ((GameObject)Instantiate(magicMissile, Character.transform.position, Quaternion.identity)).GetComponent<MagicMissile>().SetDirection((distance * 0.03f));
+                Instantiate(magicMissile, Character.transform.position, Quaternion.LookRotation(distance));
             }
-            if (fireballChargingTimer < fireballChargingDelay)
+
+            if (Vector2.Distance(Vector2.zero, distance) > 185f)
             {
-                if(Vector2.Distance(Vector2.zero, distance) < 20&&0!= Vector2.Distance(Vector2.zero, distance))
+                JoysticImage.rectTransform.localPosition = Vector2.zero;
+                if (StatusManager.instance.UseMP(20))
                 {
-                    fireballChargingTimer += Time.deltaTime;
+                    Instantiate(teleportPrefabs, Character.transform.position, Quaternion.identity);
+                    Vector2 teleport = distance * 0.01f;
+                    Character.transform.Translate(teleport + (teleport * (teleportSkillLevel * 0.1f)));
                 }
-                Character.transform.Translate((distance * 0.03f) * Time.deltaTime);
+                distance = Vector2.zero;
+                moveEnable = false;
             }
-            else
-            {
-                JoysticImage.color = new Color(255, 0, 0);
-            }
-            if (Vector2.Distance(Vector2.zero, distance) > 180f)
-            {
-                if (fireballChargingDelay < fireballChargingTimer)
-                {
-                    shootFireBall();
-                    JoysticImage.rectTransform.localPosition = Vector2.zero;
-                    distance = Vector2.zero;
-                    moveEnable = false;
-                }
-                else
-                {
-                    JoysticImage.rectTransform.localPosition = Vector2.zero;
-                    if (StatusManager.instance.UseMP(20))
-                    {
-                        Instantiate(teleportPrefabs, Character.transform.position, Quaternion.identity);
-                        Vector2 teleport = distance * 0.01f;
-                        Character.transform.Translate(teleport + (teleport * (teleportSkillLevel * 0.1f)));
-                    }
-                    distance = Vector2.zero;
-                    moveEnable = false;
-                }
-            }       
         }
 
         camera.transform.localPosition = Character.transform.localPosition;
@@ -145,7 +134,7 @@ public class Joystic : MonoBehaviour {
             float dy = distance.y;
             float rad = Mathf.Atan2(dx, dy);
             float angle = Mathf.Rad2Deg * rad + 180;
-            Instantiate(fireBall, Character.transform.position, Quaternion.Euler(0,0,angle));
+            Instantiate(fireBall, Character.transform.position, Quaternion.Euler(0, 0, angle));
         }
     }
     public void OnDrag()
@@ -164,20 +153,38 @@ public class Joystic : MonoBehaviour {
                 distance = JoysticImage.rectTransform.localPosition;
             }
         }
-        else if (Vector2.Distance(Vector2.zero, distance) < 180f)
+        else
         {
-            moveEnable = true;
+            if (Input.touchCount > 0)
+            {
+                Touch t = Input.GetTouch(0);
+                JoysticImage.rectTransform.position = t.position;
+                if (Vector2.Distance(Vector2.zero, JoysticImage.rectTransform.localPosition) < 170f)
+                {
+                    moveEnable = true;
+                }
+                else
+                {
+                    JoysticImage.rectTransform.localPosition = Vector2.zero;
+                }
+            }
+            else
+            {
+                JoysticImage.rectTransform.position = Input.mousePosition;
+                if (Vector2.Distance(Vector2.zero, JoysticImage.rectTransform.localPosition) < 175f)
+                {
+                    moveEnable = true;
+                }
+                else
+                {
+                    JoysticImage.rectTransform.localPosition = Vector2.zero;
+                }
+            }
         }
-
     }
     public void OnEndDrag()
     {
         JoysticImage.rectTransform.localPosition = Vector3.zero;
-        distance = Vector2.zero;
-        if (fireballChargingDelay< fireballChargingTimer&&moveEnable)
-            shootFireBall();
-        fireballChargingTimer = 0f;
-        moveEnable = true;
         JoysticImage.color = new Color(255, 255, 255);
     }
 

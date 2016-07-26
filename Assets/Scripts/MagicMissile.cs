@@ -14,17 +14,13 @@ public class MagicMissile : MonoBehaviour {
     {
         skillLevel = PlayerPrefs.GetInt("FireBallLevel", 1);
     }
-    public void SetDirection(Vector3 direction)
-    {
-        this.direction = direction;
-    }
     // Update is called once per frame
     void Update()
     {
-        transform.Translate(direction * Time.deltaTime);
+        transform.Translate(Vector2.up * Time.deltaTime);
     }
 
-    void OnTriggerEnter2D(Collider2D other)
+    void OnCollisionEnter2D(Collision2D other)
     {
         if (other.gameObject.tag.Equals("ShortAI") || other.gameObject.tag.Equals("LongAI"))
         {

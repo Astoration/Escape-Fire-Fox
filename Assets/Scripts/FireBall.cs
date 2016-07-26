@@ -19,7 +19,7 @@ public class FireBall : MonoBehaviour {
         transform.Translate(Vector2.left * Speed * Time.deltaTime);
 	}
 
-    void OnTriggerEnter2D(Collider2D other)
+    void OnCollisionEnter2D(Collision2D other)
     {
         if (other.gameObject.tag.Equals("ShortAI")|| other.gameObject.tag.Equals("LongAI"))
         {

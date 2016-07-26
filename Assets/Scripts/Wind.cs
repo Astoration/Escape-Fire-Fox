@@ -24,7 +24,7 @@ public class Wind : MonoBehaviour {
         transform.Translate(direction * Speed * Time.deltaTime);
     }
 
-    void OnTriggerEnter2D(Collider2D other)
+    void OnCollisionEnter2D(Collision2D other)
     {
         if (other.gameObject.tag.Equals("ShortAI") || other.gameObject.tag.Equals("LongAI"))
         {
@@ -37,7 +37,6 @@ public class Wind : MonoBehaviour {
                 other.gameObject.GetComponent<longAI>().DealDamage(50 + 60 * skillLevel);
             }
             Instantiate(Effect, transform.position, Quaternion.identity);
-            Destroy(this.gameObject);
         }
     }
 }

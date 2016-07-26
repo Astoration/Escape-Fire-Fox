@@ -23,20 +23,21 @@ public class IceBlast : MonoBehaviour {
     {
         this.gameObject.transform.rotation = Quaternion.Euler(0, 0, angle);
     }
-    void OnTriggerEnter2D(Collider2D other)
+    void OnCollisionEnter2D(Collision2D other)
     {
         if (other.gameObject.tag.Equals("ShortAI") || other.gameObject.tag.Equals("LongAI"))
         {
             if (other.gameObject.tag.Equals("ShortAI"))
             {
+                other.gameObject.GetComponent<shortAI>().onFreeze();
                 other.gameObject.GetComponent<shortAI>().DealDamage(60 + 50 * skillLevel);
             }
             else
             {
+                other.gameObject.GetComponent<longAI>().onFreeze();
                 other.gameObject.GetComponent<longAI>().DealDamage(60 + 50 * skillLevel);
             }
-            Instantiate(Effect, transform.position, Quaternion.identity);
-            Destroy(this.gameObject);
+            Instantiate(Effect, other.gameObject.transform.position, Quaternion.identity);
         }
     }
 }
